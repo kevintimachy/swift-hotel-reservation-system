@@ -7,6 +7,8 @@
 
 import Foundation
 
+
+
 class Customer: CustomStringConvertible {
     let name: String
     var email: String {
@@ -17,7 +19,9 @@ class Customer: CustomStringConvertible {
     let city: String
     let creditCard: Int?
     var description: String {
-        return "Name: \(name)\nCity: \(city)\nEmail: \(email)\n\(creditCard == nil ? "No credit card provided." : "Credit Card: \(creditCard!)")"
+        get {
+            return "Name: \(name)\nCity: \(city)\nEmail: \(email)\n\(creditCard == nil ? "No credit card provided." : "Credit Card: \(creditCard!)")"
+        }
 
     }
     
@@ -34,21 +38,35 @@ class Customer: CustomStringConvertible {
 }
 
 
+
+
+
+
+
+
 class RoomReservation {
     let customer: Customer
     let dailyRate: Double
     let numDays: Int
     var taxRate: Double {
-        return customer.city == "New York City" ? 5.875 : 2.0
+        get {
+            return customer.city == "New York City" ? 5.875 : 2.0
+        }
     }
     var roomCost: Double {
-        return Double(numDays) * dailyRate
+        get {
+            return Double(numDays) * dailyRate
+        }
     }
     var occupancyTax: Double{
-        return (roomCost * taxRate)/100
+        get {
+            return (roomCost * taxRate)/100
+        }
     }
     var total: Double {
-        return roomCost + occupancyTax
+        get {
+            return roomCost + occupancyTax
+        }
     }
     
     init(customer: Customer, dailyRate: Double, numberOfDays: Int){
@@ -67,18 +85,82 @@ class RoomReservation {
     }
 }
 
+
+
+
+
+
+
 class ConferenceRoomReservation : RoomReservation {
     let eventName: String
     let numAttendees: Int
-    let additionalServices: [String:Double]?
+    var additionalServices: [String:Double]?
     override var total: Double {
-        return super.roomCost + super.occupancyTax
+        get {
+            var costServices: Double = 0
+            if let services = additionalServices {
+                for cost in services.values {
+                    costServices += cost
+                }
+            }
+            return super.roomCost + super.occupancyTax + costServices
+        }
+    }
+    
+    init(eventName: String, numAttendees: Int, additionalServices: [String : Double]? , customer: Customer, numberOfDays: Int) {
+        self.eventName = eventName
+        self.numAttendees = numAttendees
+        self.additionalServices = additionalServices
+        super.init(customer: customer, dailyRate: 105 * Double(numAttendees), numberOfDays: numberOfDays)
+    }
+    func addService(serviceName: String, cost: Double) {
+        if (additionalServices?[serviceName]) != nil {
+            return
+        }
+        else {
+            additionalServices?[serviceName] = cost
+        }
+    }
+    override func printInvoice() {
+        print("===================\n===== INVOICE =====\n===================")
+        print("---Customer Details---")
+        print(super.customer)
+        print("---Event Details---")
+        print("Event Name: \(self.eventName)\nLength: \(super.numDays) day(s)\nAttendees: $\(self.numAttendees)\nOccupancy Tax (\(super.taxRate)%): $\(self.occupancyTax)")
+        if let services = additionalServices{
+            for (service, cost) in services {
+                print(" + \(service): $\(cost)")
+            }
+        }
+        print("Total: $\(self.total)")
     }
 }
+
+
+
+
+
+
 
 
 let c1:Customer = Customer(name: "Kevin", city: "New York City", creditCard: 1001)
 let c2:Customer = Customer(name: "Claudia", city: "Toronto")
 
-let r1:RoomReservation = RoomReservation(customer: c2, dailyRate: 341.5, numberOfDays: 3)
+let r1:RoomReservation = RoomReservation(
+    customer: c2,
+    dailyRate: 341.5,
+    numberOfDays: 3
+)
+
 r1.printInvoice()
+
+let r2: ConferenceRoomReservation = ConferenceRoomReservation(
+    eventName: "Toronto Codes",
+    numAttendees: 35,
+    additionalServices:
+        ["Catering": 1375.99, "A/V Equipment": 250.0, "Printing Services": 80.5],
+    customer: c1,
+    numberOfDays: 2
+)
+
+r2.printInvoice()
