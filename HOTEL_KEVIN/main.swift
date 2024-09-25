@@ -142,7 +142,6 @@ class ConferenceRoomReservation : RoomReservation {
 
 
 
-
 let c1:Customer = Customer(name: "Kevin", city: "New York City", creditCard: 1001)
 let c2:Customer = Customer(name: "Claudia", city: "Toronto")
 
